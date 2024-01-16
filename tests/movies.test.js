@@ -1,5 +1,5 @@
 const request = require("supertest");
-
+const database = require('../database');
 const app = require("../src/app");
 
 const crypto = require("node:crypto");
@@ -48,7 +48,7 @@ describe("POST /api/movies", () => {
     expect(typeof response.body.id).toBe("number");
 
     // Check existence and types of properties in the response body
-    expect(response.body).toHaveProperty("title");
+    expect(response.body.title).toBeDefined();
     expect(typeof response.body.title).toBe("string");
 
     expect(response.body).toHaveProperty("director");
@@ -163,5 +163,25 @@ describe("PUT /api/movies/:id", () => {
     const response = await request(app).put("/api/movies/0").send(newMovie);
 
     expect(response.status).toEqual(404);
+  });
+});
+
+describe('DELETE /api/movies/:id', () => {
+  it('should delete a movie and return status 204', async () => {
+    // Supposons que vous ayez déjà un ID de film existant
+    const existingMovieId = 1;
+
+    const response = await request(app).delete(`/api/movies/${existingMovieId}`);
+
+    expect(response.status).toBe(204);
+  });
+
+  it('should return status 404 for non-existing movie ID', async () => {
+    // Supposons que vous ayez un ID de film qui n'existe pas
+    const nonExistingMovieId = 999;
+
+    const response = await request(app).delete(`/api/movies/${nonExistingMovieId}`);
+
+    expect(response.status).toBe(404);
   });
 });
