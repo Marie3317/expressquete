@@ -2,7 +2,6 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
-
 // Ajout des routes pour les movies
 const movieControllers = require("./controllers/movieControllers");
 
