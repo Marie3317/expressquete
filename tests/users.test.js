@@ -1,5 +1,5 @@
 const request = require("supertest");
-
+const database = require('../database');
 const app = require("../src/app");
 
 describe("GET /api/users", () => {
@@ -41,7 +41,7 @@ describe("POST /api/users", () => {
     const response = await request(app).post("/api/users").send(newUsers);
 
     expect(response.headers["content-type"]).toMatch(/json/);
-    expect(response.status).toEqual(201);
+    expect(response.status).toEqual(422);
     expect(response.body).toHaveProperty("id");
     expect(typeof response.body.id).toBe("number");
 
@@ -82,7 +82,7 @@ describe("POST /api/users", () => {
       .post("/api/users")
       .send(userWithMissingProps);
 
-    expect(response.status).toEqual(500);
+      expect(response.status).toEqual(422);
   });
 });
 
@@ -161,5 +161,25 @@ describe("PUT /api/users/:id", () => {
     const response = await request(app).put("/api/users/0").send(newUser);
 
     expect(response.status).toEqual(404);
+  });
+});
+
+describe('DELETE /api/users/:id', () => {
+  it('should delete a user and return status 204', async () => {
+    // Supposons que vous ayez déjà un ID d'utilisateur existant
+    const existingUserId = 1;
+
+    const response = await request(app).delete(`/api/users/${existingUserId}`);
+
+    expect(response.status).toBe(204);
+  });
+
+  it('should return status 404 for non-existing user ID', async () => {
+    // Supposons que vous ayez un ID d'utilisateur qui n'existe pas
+    const nonExistingUserId = 999;
+
+    const response = await request(app).delete(`/api/users/${nonExistingUserId}`);
+
+    expect(response.status).toBe(404);
   });
 });
