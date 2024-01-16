@@ -85,3 +85,81 @@ describe("POST /api/users", () => {
     expect(response.status).toEqual(500);
   });
 });
+
+describe("PUT /api/users/:id", () => {
+  it("should edit user", async () => {
+    const newUser = {
+      title: "Avatar",
+      director: "James Cameron",
+      year: "2010",
+      color: "1",
+      duration: 162,
+    };
+
+    const [result] = await database.query(
+      "INSERT INTO users(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)",
+      [newUser.title, newUser.director, newUser.year, newUser.color, newUser.duration]
+    );
+
+    const id = result.insertId;
+
+    const updatedUser = {
+      title: "Wild is life",
+      director: "Alan Smithee",
+      year: "2023",
+      color: "0",
+      duration: 120,
+    };
+
+    const response = await request(app)
+      .put(`/api/users/${id}`)
+      .send(updatedUser);
+
+    expect(response.status).toEqual(204);
+
+    const [users] = await database.query("SELECT * FROM users WHERE id=?", id);
+
+    const [UserInDatabase] = users;
+
+    expect(userInDatabase).toHaveProperty("id");
+
+    expect(userInDatabase).toHaveProperty("title");
+    expect(userInDatabase.title).toStrictEqual(updatedUser.title);
+
+    expect(userInDatabase).toHaveProperty("director");
+    expect(userInDatabase.director).toStrictEqual(updatedUser.director);
+
+    expect(userInDatabase).toHaveProperty("year");
+    expect(userInDatabase.year).toStrictEqual(updatedUser.year);
+
+    expect(userInDatabase).toHaveProperty("color");
+    expect(userInDatabase.color).toStrictEqual(updatedUser.color);
+
+    expect(userInDatabase).toHaveProperty("duration");
+    expect(userInDatabase.duration).toStrictEqual(updatedUser.duration);
+  });
+
+  it("should return an error", async () => {
+    const userWithMissingProps = { title: "Harry Potter" };
+
+    const response = await request(app)
+      .put(`/api/users/1`)
+      .send(userWithMissingProps);
+
+    expect(response.status).toEqual(500);
+  });
+
+  it("should return no user", async () => {
+    const newUser = {
+      title: "Avatar",
+      director: "James Cameron",
+      year: "2009",
+      color: "1",
+      duration: 162,
+    };
+
+    const response = await request(app).put("/api/users/0").send(newUser);
+
+    expect(response.status).toEqual(404);
+  });
+});
